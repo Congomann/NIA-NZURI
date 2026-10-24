@@ -95,6 +95,35 @@ def get_speech_dataloader(
     return dataloader
 
 
+def swahili_waveform_collate_fn(batch: List[Tuple[torch.Tensor, int, str]]) -> torch.Tensor:
+    """
+    Collates batch items and returns raw waveforms [Batch, TimeSteps] (e.g. [Batch, 80000]).
+    """
+    waveforms, _, _ = zip(*batch)
+    return torch.stack([w.squeeze(0) if w.dim() > 1 else w for w in waveforms], dim=0)
+
+
+def get_swahili_dataloader(
+    data_dir: str = "./data/processed_training_chunks",
+    batch_size: int = 8,
+    shuffle: bool = True,
+    num_workers: int = 0,
+    pin_memory: bool = False
+) -> DataLoader:
+    """
+    Convenience DataLoader returning pure waveform tensors [Batch, 80000] for direct training.
+    """
+    dataset = SwahiliSpeechDataset(data_dir=data_dir)
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        pin_memory=pin_memory and torch.cuda.is_available(),
+        collate_fn=swahili_waveform_collate_fn
+    )
+
+
 if __name__ == "__main__":
     PROCESSED_DATA_DIR = "./data/processed_training_chunks"
     
