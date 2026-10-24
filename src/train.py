@@ -43,8 +43,24 @@ def train_s2s_model(data_dir, checkpoint_dir="./checkpoints", epochs=10, batch_s
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     criterion = nn.CrossEntropyLoss()
 
+    # Auto-resume from latest checkpoint if available
+    start_epoch = 0
+    available_pts = sorted(
+        [os.path.join(checkpoint_dir, f) for f in os.listdir(checkpoint_dir) if f.endswith(".pt")]
+    ) if os.path.exists(checkpoint_dir) else []
+    if available_pts:
+        latest_ckpt = available_pts[-1]
+        try:
+            ckpt_data = torch.load(latest_ckpt, map_location=device)
+            model.load_state_dict(ckpt_data['model_state_dict'])
+            optimizer.load_state_dict(ckpt_data['optimizer_state_dict'])
+            start_epoch = ckpt_data.get('epoch', 0)
+            print(f"Resuming training from existing checkpoint: {latest_ckpt} (Completed epoch: {start_epoch})")
+        except Exception as e:
+            print(f"Warning: Could not resume from {latest_ckpt}: {e}. Starting fresh.")
+
     print("\n=== Initializing Training Operations ===")
-    for epoch in range(epochs):
+    for epoch in range(start_epoch, epochs):
         running_loss = 0.0
         
         for batch_idx, waveforms in enumerate(dataloader):
