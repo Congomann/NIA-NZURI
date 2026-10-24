@@ -11,14 +11,17 @@ def preprocess_swahili_audio(input_folder, output_folder, segment_length_ms=5000
         os.makedirs(output_folder)
         print(f"Created output directory: {output_folder}")
 
-    # Supported audio extensions
-    valid_extensions = ('.mp3', '.wav', '.flac', '.m4a')
+    # Supported audio and video extensions (ffmpeg extracts audio from video formats automatically)
+    valid_extensions = ('.mp3', '.wav', '.flac', '.m4a', '.aac', '.ogg', '.opus', '.mp4', '.mkv', '.mov', '.webm')
     file_counter = 0
 
-    for filename in os.listdir(input_folder):
-        if filename.lower().endswith(valid_extensions):
-            file_path = os.path.join(input_folder, filename)
-            print(f"Processing: {filename}")
+    # Walk recursively through all files and subdirectories
+    for root, _, files in os.walk(input_folder):
+        for filename in files:
+            if filename.lower().endswith(valid_extensions):
+                file_path = os.path.join(root, filename)
+                rel_path = os.path.relpath(file_path, input_folder)
+                print(f"Processing: {rel_path}")
             
             try:
                 # 1. Load the audio asset
