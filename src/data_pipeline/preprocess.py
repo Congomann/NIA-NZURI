@@ -28,7 +28,7 @@ def preprocess_swahili_audio(input_folder, output_folder, segment_length_ms=5000
                 audio = AudioSegment.from_file(file_path)
                 
                 # 2. Normalize volume (Target -20 dBFS for uniform training data)
-                change_in_dBFS = -20.0 - audio.dbfs
+                change_in_dBFS = -20.0 - audio.dBFS
                 normalized_audio = audio.apply_gain(change_in_dBFS)
                 
                 # 3. Split on long silences to keep high-density speech/dialogue
