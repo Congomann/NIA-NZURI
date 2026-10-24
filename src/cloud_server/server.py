@@ -37,9 +37,12 @@ def load_trained_models():
     
     s2s_model = SwahiliS2STransformer(num_tokens=1024, num_codebooks=4).to(DEVICE)
     
-    # Path points to your best-performing checkpoint saved from train.py
-    checkpoint_path = os.path.join(src_dir, "..", "checkpoints", "swahili_s2s_epoch_5.pt")
-    checkpoint_path = os.path.abspath(checkpoint_path)
+    # Dynamically find the highest epoch checkpoint available, or fallback to epoch_5
+    checkpoints_dir = os.path.abspath(os.path.join(src_dir, "..", "checkpoints"))
+    available_pts = sorted(
+        [os.path.join(checkpoints_dir, f) for f in (os.listdir(checkpoints_dir) if os.path.exists(checkpoints_dir) else []) if f.endswith(".pt")]
+    )
+    checkpoint_path = available_pts[-1] if available_pts else os.path.join(checkpoints_dir, "swahili_s2s_epoch_5.pt")
     if os.path.exists(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location=DEVICE)
         s2s_model.load_state_dict(checkpoint['model_state_dict'])
