@@ -15,8 +15,13 @@ from core_model.transformer import SwahiliS2STransformer
 
 app = FastAPI(title="Sikika Native Tanzanian Swahili S2S Engine")
 
-# Global device and model management matrix allocation
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Global device and model management matrix allocation (CUDA -> Apple Silicon MPS -> CPU)
+if torch.cuda.is_available():
+    DEVICE = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    DEVICE = torch.device("mps")
+else:
+    DEVICE = torch.device("cpu")
 codec = None
 s2s_model = None
 

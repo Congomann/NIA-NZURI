@@ -17,8 +17,13 @@ def train_s2s_model(data_dir, checkpoint_dir="./checkpoints", epochs=10, batch_s
     """
     Unified training loop running directly on RunPod Cloud GPU instances.
     """
-    # 1. Device Allocation Layer
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # 1. Device Allocation Layer (NVIDIA CUDA -> Apple Silicon Metal MPS -> CPU)
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
     print(f"Executing training matrix on device architecture: {device}")
     
     if not os.path.exists(checkpoint_dir):
